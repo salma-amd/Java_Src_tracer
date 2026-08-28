@@ -129,6 +129,8 @@ java -jar instrumenter/build/libs/instrumenter-0.1.0-SNAPSHOT-all.jar \
 
 ### 2. Compile and run to generate the trace
 
+**Text mode:**
+
 ```bash
 javac -cp runtime/build/libs/runtime-0.1.0-SNAPSHOT.jar \
   examples/instrumented/Demo.java
@@ -144,14 +146,31 @@ cat trace-out/*.trace.txt
 
 Example output: `C2C1OOOOOOOORE`
 
+**Binary mode:**
+
+```bash
+javac -cp runtime-binary/build/libs/runtime-binary-0.1.0-SNAPSHOT.jar \
+  examples/instrumented/Demo.java
+
+java -cp examples/instrumented:runtime-binary/build/libs/runtime-binary-0.1.0-SNAPSHOT.jar Demo
+```
+
+This creates a `.trace` file (binary) in `trace-out/`. Inspect it with:
+
+```bash
+xxd trace-out/*.trace
+```
+
 ### 3. Prepare a folder for ProRunVis upload
 
-Create a folder containing the **original** (uninstrumented) source + the generated trace file:
+Create a folder containing the **original** (uninstrumented) source + the generated trace file. Either a text trace (`.trace.txt`) or a binary trace (`.trace`) works — ProRunVis accepts both formats.
 
 ```bash
 mkdir -p ~/Desktop/DemoForProRunVis
 cp examples/Demo.java ~/Desktop/DemoForProRunVis/
-cp trace-out/*.trace.txt ~/Desktop/DemoForProRunVis/
+cp trace-out/*.trace.txt ~/Desktop/DemoForProRunVis/   # text mode
+# OR
+cp trace-out/*.trace ~/Desktop/DemoForProRunVis/        # binary mode
 ```
 
 The folder should look like:
@@ -159,7 +178,7 @@ The folder should look like:
 ```
 DemoForProRunVis/
 ├── Demo.java
-└── Demo_2026-08-08_19.38.56.618805000.trace.txt
+└── Demo_<timestamp>.trace.txt   (or .trace for binary)
 ```
 
 ### 4. Start ProRunVis
@@ -174,12 +193,12 @@ java -jar prorunvis-api/build/libs/prorunvis-api.jar
 
 1. Open `http://localhost:8080` in a browser
 2. Click the upload button and select the `DemoForProRunVis` folder
-3. ProRunVis auto-detects the `.trace.txt` file and uses the SrcTracer path (AbstractRetracer) instead of compiling and running the code
+3. ProRunVis auto-detects the trace file (`.trace.txt` or `.trace`) and uses the SrcTracer path (AbstractRetracer) instead of compiling and running the code
 4. The visualization appears with colored code highlighting
 
 You can verify which path was used by checking the server terminal output:
-- `[ProRunVis] Using SrcTracer path: ...` — AbstractRetracer was used
-- `[ProRunVis] Using original compile-and-run path` — no `.trace.txt` found, original path was used
+- `[ProRunVis] Using SrcTracer path: ...` — AbstractRetracer was used (works for both text and binary traces)
+- `[ProRunVis] Using original compile-and-run path` — no trace file found, original path was used
 
 ### How it works
 
@@ -187,19 +206,19 @@ You can verify which path was used by checking the server terminal output:
 SrcTracer side:                          ProRunVis side:
                                         
 Demo.java                               Upload folder:
-    │                                    Demo.java + .trace.txt
+    │                                    Demo.java + .trace.txt/.trace
     ▼                                        │
 Instrumenter                                 ▼
     │                                    Instrument (block ID map only)
     ▼                                        │
 Demo_instrumented.java                       ▼
     │                                    AbstractRetracer
-    ▼                                    reads .trace.txt + walks AST
+    ▼                                    reads .trace.txt/.trace + walks AST
 Compile + Run                                │
     │                                        ▼
     ▼                                    Block IDs: [3, 0, 2, 2, 2]
-trace-out/*.trace.txt                        │
-(e.g. C2C1OIIIORE)                          ▼
+trace-out/*.trace.txt or *.trace             │
+(text or binary)                            ▼
                                          TraceProcessor → JSON
                                              │
                                              ▼
