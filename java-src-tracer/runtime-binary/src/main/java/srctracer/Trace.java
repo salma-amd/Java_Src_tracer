@@ -36,6 +36,7 @@ public class Trace {
     private static int bufPos = 0;
     private static int ieByte = IE_INIT;
     private static boolean breakBefore = false;
+    private static int nextTryIdx = 0;
 
     private static FileOutputStream out;
 
@@ -134,9 +135,10 @@ public class Trace {
         putByte(RETURN);
     }
 
-    public static void _TRY() {
+    public static int _TRY() {
         ieFinish();
         putByte(TRY);
+        return nextTryIdx++;
     }
 
     /** No-op in binary mode (matches C #else branch in trace_mode.h). */

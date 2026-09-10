@@ -38,6 +38,7 @@ class InstrumenterVisitor extends ModifierVisitor<Void> {
     int nextFuncId = 1;
     int nextSwitchId = 0;
     int nextTmpId = 0;
+    int nextTryId = 0;
 
     int methods = 0;
     int ifs = 0;
@@ -247,18 +248,23 @@ class InstrumenterVisitor extends ModifierVisitor<Void> {
     public Visitable visit(TryStmt n, Void a) {
         super.visit(n, a);
 
-        BlockStmt tryBlock = n.getTryBlock();
-        tryBlock.addStatement(0, parseCall("_TRY"));
+        int tryId = nextTryId++;
+        String tryVar = "__srctracer_tryidx$" + tryId;
 
-        if (!alwaysExits(tryBlock)) {
-            tryBlock.addStatement(parseCall("_TRY_END"));
+        // Declare variable before try and assign _TRY() return value
+        insertBefore(n, parseStatement(
+                "int " + tryVar + " = srctracer.Trace._TRY();"));
+
+        if (!alwaysExits(n.getTryBlock())) {
+            n.getTryBlock().addStatement(parseCall("_TRY_END"));
         }
 
         NodeList<CatchClause> catches = n.getCatchClauses();
         for (int i = 0; i < catches.size(); i++) {
             BlockStmt catchBody = catches.get(i).getBody();
+            String catchArg = i == 0 ? tryVar : tryVar + " + " + i;
             catchBody.addStatement(0, parseStatement(
-                    "srctracer.Trace._CATCH(" + i + ");"));
+                    "srctracer.Trace._CATCH(" + catchArg + ");"));
         }
 
         tries++;

@@ -11,6 +11,7 @@ public class Trace {
 
     private static OutputStreamWriter out;
     private static boolean breakBefore = false;
+    private static int nextTryIdx = 0;
 
     private static final String OUT_DIR = "trace-out/";
 
@@ -40,7 +41,7 @@ public class Trace {
         }
     }
 
-    public static void _TRY()             { write("T"); }
+    public static int _TRY()               { write("T"); return nextTryIdx++; }
     public static void _TRY_END()         { write("U"); }
     public static void _CATCH(int idx)    { write("J" + Integer.toHexString(idx)); }
 
