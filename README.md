@@ -1,6 +1,6 @@
 # Java SrcTracer
 
-A Java implementation of [SrcTracer](https://github.com/lks9/src-tracer), originally developed for C/C++. This version reimplements the instrumenter using JavaParser (instead of Clang), provides two trace runtimes (text and binary), and includes an AbstractRetracer that converts SrcTracer traces into ProRunVis block IDs.
+A Java implementation of [SrcTracer](https://github.com/lks9/src-tracer), originally developed for C/C++. This version reimplements the instrumenter using JavaParser (instead of Clang), provides two trace runtimes (text and binary), and includes an AbstractRetracer that converts SrcTracer traces into [ProRunVis](https://github.com/ProRunVis/ProRunVis) block IDs.
 
 SrcTracer records a compact execution trace of a Java program at the source level. The trace can be used standalone or uploaded to ProRunVis for visualization.
 
